@@ -29,13 +29,13 @@ class StockTradingEnv(gym.Env):
                 turbulence_threshold=None,
                 make_plots = False, 
                 print_verbosity = 10,
-                day = 0, 
+                step= 0, 
                 initial=True,
                 previous_state=[],
                 model_name = '',
                 mode='',
                 iteration=''):
-        self.day = day
+        self.day = step
         self.df = df
         self.stock_dim = stock_dim
         self.hmax = hmax
