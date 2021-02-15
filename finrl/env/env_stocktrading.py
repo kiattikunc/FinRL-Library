@@ -29,13 +29,13 @@ class StockTradingEnv(gym.Env):
                 turbulence_threshold=None,
                 make_plots = False, 
                 print_verbosity = 10,
-                step = 0, 
+                day = 0, 
                 initial=True,
                 previous_state=[],
                 model_name = '',
                 mode='',
                 iteration=''):
-        self.step = step
+        self.day = day
         self.df = df
         self.stock_dim = stock_dim
         self.hmax = hmax
@@ -48,7 +48,7 @@ class StockTradingEnv(gym.Env):
         self.tech_indicator_list = tech_indicator_list
         self.action_space = spaces.Box(low = -1, high = 1,shape = (self.action_space,)) 
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape = (self.state_space,))
-        self.data = self.df.loc[self.step,:]
+        self.data = self.df.loc[self.day,:]
         self.terminal = False     
         self.make_plots = make_plots
         self.print_verbosity = print_verbosity
@@ -167,7 +167,7 @@ class StockTradingEnv(gym.Env):
         plt.close()
 
     def step(self, actions):
-        self.terminal = self.step >= len(self.df.index.unique())-1
+        self.terminal = self.day >= len(self.df.index.unique())-1
         if self.terminal:
             # print(f"Episode: {self.episode}")
             if self.make_plots:
@@ -186,7 +186,7 @@ class StockTradingEnv(gym.Env):
             df_rewards.columns = ['account_rewards']
             df_rewards['date'] = self.date_memory[:-1]
             if self.episode % self.print_verbosity == 0:
-                print(f"step: {self.step}, episode: {self.episode}")
+                print(f"day: {self.day}, episode: {self.episode}")
                 print(f"begin_total_asset: {self.asset_memory[0]:0.2f}")
                 print(f"end_total_asset: {end_total_asset:0.2f}")
                 print(f"total_reward: {tot_reward:0.2f}")
