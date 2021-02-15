@@ -35,7 +35,7 @@ class StockPortfolioEnv(gym.Env):
             a list of technical indicator names
         turbulence_threshold: int
             a threshold to control risk aversion
-        day: int
+        step: int
             an increment number to control date
 
     Methods
@@ -74,11 +74,11 @@ class StockPortfolioEnv(gym.Env):
         tech_indicator_list,
         turbulence_threshold=None,
         lookback=252,
-        day=0,
+        step=0,
     ):
         # super(StockEnv, self).__init__()
         # money = 10 , scope = 1
-        self.day = day
+        self.step = step
         self.lookback = lookback
         self.df = df
         self.stock_dim = stock_dim
@@ -101,7 +101,7 @@ class StockPortfolioEnv(gym.Env):
         )
 
         # load data from a pandas dataframe
-        self.data = self.df.loc[self.day, :]
+        self.data = self.df.loc[self.step, :]
         self.covs = self.data["cov_list"].values[0]
         self.state = np.append(
             np.array(self.covs),
@@ -121,8 +121,8 @@ class StockPortfolioEnv(gym.Env):
         self.date_memory = [self.data.date.unique()[0]]
 
     def step(self, actions):
-        # print(self.day)
-        self.terminal = self.day >= len(self.df.index.unique()) - 1
+        # print(self.step)
+        self.terminal = self.step >= len(self.df.index.unique()) - 1
         # print(actions)
 
         if self.terminal:
@@ -164,11 +164,11 @@ class StockPortfolioEnv(gym.Env):
             weights = self.softmax_normalization(actions)
             # print("Normalized actions: ", weights)
             self.actions_memory.append(weights)
-            last_day_memory = self.data
+            last_step_memory = self.data
 
             # load next state
-            self.day += 1
-            self.data = self.df.loc[self.day, :]
+            self.step += 1
+            self.data = self.df.loc[self.step, :]
             self.covs = self.data["cov_list"].values[0]
             self.state = np.append(
                 np.array(self.covs),
@@ -179,7 +179,7 @@ class StockPortfolioEnv(gym.Env):
             # calcualte portfolio return
             # individual stocks' return * weight
             portfolio_return = sum(
-                ((self.data.close.values / last_day_memory.close.values) - 1) * weights
+                ((self.data.close.values / last_step_memory.close.values) - 1) * weights
             )
             # update portfolio value
             new_portfolio_value = self.portfolio_value * (1 + portfolio_return)
@@ -199,8 +199,8 @@ class StockPortfolioEnv(gym.Env):
 
     def reset(self):
         self.asset_memory = [self.initial_amount]
-        self.day = 0
-        self.data = self.df.loc[self.day, :]
+        self.step = 0
+        self.data = self.df.loc[self.step, :]
         # load states
         self.covs = self.data["cov_list"].values[0]
         self.state = np.append(
